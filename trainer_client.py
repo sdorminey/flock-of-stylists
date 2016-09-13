@@ -18,13 +18,13 @@ producer = KafkaProducer(
 
 print ("Ready.")
 
-task = {"args": args.args, "style": args.style}
+style_path = os.path.abspath(args.style)
+task = {"args": args.args, "style": os.path.basename(style_path)}
 
-path = os.path.abspath(args.style)
-common.log("Uploading %s" % path)
+common.log("Uploading %s" % style_path)
 
-common.upload("style", path)
+common.upload("style", style_path)
 common.log("Upload complete; submitting job named %s" % args.name)
 
-producer.send("training", key=args.name.encode("utf-8"), value=task)
+producer.send("training-2", key=args.name.encode("utf-8"), value=task)
 common.log("Job submitted")

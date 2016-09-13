@@ -5,7 +5,7 @@ from kazoo.client import KazooClient
 from kafka import KafkaProducer
 
 ZK_ENDPOINT = "127.0.0.1:2181"
-DATA_FOLDER = "~/flock"
+DATA_FOLDER = "/srv/flock/data"
 
 class Common:
     def __init__(self, identity):
@@ -28,12 +28,20 @@ class Common:
         filename = os.path.basename(path)
         with open(path, "rb") as f:
             requests.post(
-                    "http://%s/upload" % self.fs_addr,
-                    files = {filename: f})
+                    "http://%s/%s/%s" % (self.fs_addr, category, filename),
+                    data = f)
 
     def download(self, category, filename):
+        path = os.path.join(DATA_FOLDER, self.identity, category, filename)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        if os.path.exists(path):
+            self.log("Skipped downloading %s because we already have it." % path)
+            return
+        else:
+            self.log("Downloading %s" % path)
+
         r = requests.get("http://%s/%s/%s" % (self.fs_addr, category, filename), stream=True)
-        path = os.path.join(DATA_FOLDER, category, filename)
-        with open(path, "rb") as f:
+        with open(path, "wb") as f:
             for chunk in r.iter_content(chunk_size=4096):
                 f.write(chunk)
