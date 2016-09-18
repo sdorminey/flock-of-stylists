@@ -5,7 +5,6 @@ import os
 from kafka import KafkaConsumer
 from common import Common
 
-TOPIC = "training-2"
 TRAIN_PATH = "th ../neural/train.lua"
 
 if len(sys.argv) < 2:
@@ -16,7 +15,7 @@ common = Common("Trainer_%s" % sys.argv[1])
 common.load()
 
 consumer = KafkaConsumer(
-        TOPIC, # Topic.
+        common.get_topic(), # Topic.
         group_id="trainers", # Consumer group.
         enable_auto_commit=False, # Don't commit unless we successfully process request.
         value_deserializer=lambda m: json.loads(m.decode("utf-8")))
@@ -84,13 +83,14 @@ for message in consumer:
     common.upload("checkpoint", checkpoint_name)
 
     # Post a successor to this job, if we still have cycles remaining.
+    # Otherwise, we're done! Hooray.
     if cycles_remaining > 1:
         next_task = message.value
         next_task["cycles_remaining"] = cycles_remaining-1
         next_task["cycles_completed"] = cycles_completed+1
         next_task["starting_checkpoint"] = checkpoint_name
 
-        producer.send(TOPIC, key=args.name.encode("utf-8"), value=next_task)
+        producer.send(common.gettopic(), key=args.name.encode("utf-8"), value=next_task)
 
     # Commit that this message was processed for our consumer group.
     consumer.commit()
