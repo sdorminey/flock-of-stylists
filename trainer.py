@@ -2,9 +2,10 @@ import json
 import sys
 import subprocess
 import os
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 from common import Common
 
+TRAIN_ROOT = os.path.abspath("../neural")
 TRAIN_PATH = "th ../neural/train.lua"
 
 if len(sys.argv) < 2:
@@ -52,20 +53,19 @@ for message in consumer:
 
     checkpoint_name = "%s_%d.t7" % (name, cycles_completed + 1)
 
-    learning_rate = base_learning_rate*(learning_decay**(math.floor(cycles_completed/(float)learning_period)))
+    learning_rate = base_learning_rate*(learning_decay**(cycles_completed/learning_period))
 
     data_path = os.path.expanduser("~/flock/dataset")
     style_path = common.getpath("style", style)
     out_path = common.getpath("checkpoint", checkpoint_name)
 
-    params = "-data %s -style_image %s -num_iterations %d -learning_rate %f -out %s %s"
-            % (data_path, style_path, iterations_per_cycle, learning_rate, out_path, args)
+    params = "-data %s -style_image %s -num_iterations %d -learning_rate %f -out %s %s" % (data_path, style_path, iterations_per_cycle, learning_rate, out_path, args)
 
     if has_starting_checkpoint:
         params = "%s -starting_checkpoint %s" % (params, common.getpath("checkpoint", starting_checkpoint))
 
-    common.log("Received request (offset %d) named %s with style: %s, args: %s"
-            % (message.offset, name, style, args))
+    common.log("Received request (offset %d) named %s with style: %s, args: %s" % (message.offset, name, style, args))
+            
 
     # Pull down assets.
     common.download("style", style)
@@ -75,9 +75,11 @@ for message in consumer:
     
     # Run the training program.
     run_command = "%s %s" % (TRAIN_PATH, params)
-    result = subprocess.run(run_command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True)
-    common.log("Training program output: %s" % result.stdout)
-    result.check_returncode() # Die if an error occurred.
+    process = subprocess.Popen(run_command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True, cwd=TRAIN_ROOT)
+    process.wait()
+    for line in process.stdout.readlines():
+        common.log("Training program output: %s" % line)
+    common.log("Return code: %d" % process.returncode)
 
     # Upload the completed checkpoint.
     common.upload("checkpoint", checkpoint_name)
@@ -90,7 +92,7 @@ for message in consumer:
         next_task["cycles_completed"] = cycles_completed+1
         next_task["starting_checkpoint"] = checkpoint_name
 
-        producer.send(common.gettopic(), key=args.name.encode("utf-8"), value=next_task)
+        producer.send(common.get_topic(), key=name.encode("utf-8"), value=next_task)
 
     # Commit that this message was processed for our consumer group.
     consumer.commit()
