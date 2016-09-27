@@ -19,6 +19,7 @@ consumer = KafkaConsumer(
         common.get_topic(), # Topic.
         group_id="trainers", # Consumer group.
         enable_auto_commit=False, # Don't commit unless we successfully process request.
+        auto_offset_reset="earliest",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")))
 
 producer = KafkaProducer(
