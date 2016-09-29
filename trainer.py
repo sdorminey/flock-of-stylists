@@ -2,21 +2,24 @@ import json
 import sys
 import subprocess
 import os
+import argparse
 from kafka import KafkaConsumer, KafkaProducer
 from common import Common
 
 TRAIN_ROOT = os.path.abspath("../neural")
 TRAIN_PATH = "th ../neural/train.lua"
 
-if len(sys.argv) < 2:
-    print("Usage: trainer.py <Identity>")
-    sys.exit(0)
+parser = argparse.ArgumentParser()
+parser.add_argument("name", help="Name of trainer.")
+parser.add_argument("topic", help="Name of topic to consume from.")
 
-common = Common("Trainer_%s" % sys.argv[1])
+args = parser.parse_args()
+
+common = Common("Trainer_%s" % args.name)
 common.load()
 
 consumer = KafkaConsumer(
-        common.get_topic(), # Topic.
+        args.topic,
         group_id="trainers", # Consumer group.
         enable_auto_commit=False, # Don't commit unless we successfully process request.
         auto_offset_reset="earliest",

@@ -17,10 +17,6 @@ class Common:
         self.zk.start()
 
         self.fs_addr = self.zk.get("/flock/fileserver")[0].decode("utf-8")
-        self.topic = self.zk.get("/flock/topic")[0].decode("utf-8")
-
-    def get_topic(self):
-        return self.topic
 
     def log(self, message):
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
