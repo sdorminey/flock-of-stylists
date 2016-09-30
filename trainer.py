@@ -13,13 +13,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Name of trainer.")
 parser.add_argument("topic", help="Name of topic to consume from.")
 
-args = parser.parse_args()
+cmd_args = parser.parse_args()
 
-common = Common("Trainer_%s" % args.name)
+common = Common("Trainer_%s" % cmd_args.name)
 common.load()
 
 consumer = KafkaConsumer(
-        args.topic,
+        cmd_args.topic,
         group_id="trainers", # Consumer group.
         enable_auto_commit=False, # Don't commit unless we successfully process request.
         auto_offset_reset="earliest",
@@ -79,6 +79,7 @@ for message in consumer:
     
     # Run the training program.
     run_command = "%s %s" % (TRAIN_PATH, params)
+    common.log("Executing command %s" % run_command)
     process = subprocess.Popen(run_command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True, cwd=TRAIN_ROOT)
     process.wait()
     for line in process.stdout.readlines():
@@ -96,7 +97,7 @@ for message in consumer:
         next_task["cycles_completed"] = cycles_completed+1
         next_task["starting_checkpoint"] = checkpoint_name
 
-        producer.send(common.get_topic(), key=name.encode("utf-8"), value=next_task)
+        producer.send(cmd_args.topic, key=name.encode("utf-8"), value=next_task)
 
     # Commit that this message was processed for our consumer group.
     consumer.commit()
