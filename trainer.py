@@ -1,4 +1,5 @@
 import json
+import math
 import sys
 import subprocess
 import os
@@ -57,7 +58,7 @@ for message in consumer:
 
     checkpoint_name = "%s_%d.t7" % (name, cycles_completed + 1)
 
-    learning_rate = base_learning_rate*(learning_decay**(cycles_completed/learning_period))
+    learning_rate = base_learning_rate*(learning_decay**(math.ceil(cycles_completed/learning_period)))
 
     data_path = os.path.expanduser("~/flock/dataset")
     style_path = common.getpath("style", style)
