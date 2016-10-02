@@ -7,7 +7,7 @@ from kafka import KafkaConsumer, KafkaProducer
 from common import Common
 
 TRAIN_ROOT = os.path.abspath("../neural")
-TRAIN_PATH = "th ../neural/train.lua"
+TRAIN_PATH = "../neural/run_train.sh"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Name of trainer.")
@@ -78,7 +78,7 @@ for message in consumer:
         common.download("checkpoint", starting_checkpoint)
     
     # Run the training program.
-    run_command = "%s %s" % (TRAIN_PATH, params)
+    run_command = "/usr/bin/screen /usr/bin/sh %s %s" % (TRAIN_PATH, params)
     common.log("Executing command %s" % run_command)
     process = subprocess.Popen(run_command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True, cwd=TRAIN_ROOT)
     process.wait()
