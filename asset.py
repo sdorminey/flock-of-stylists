@@ -2,15 +2,16 @@ import argparse
 import os
 from common import Common
 
-common = Common("client")
-common.load()
-
 parser = argparse.ArgumentParser()
 parser.add_argument("mode", help="upload|download")
 parser.add_argument("category", help="Asset category.")
 parser.add_argument("filename", help="File name of asset.")
+parser.add_argument("--user", default="client", help="Name of user.")
 
 args = parser.parse_args()
+
+common = Common(args.user)
+common.load()
 
 print ("Ready. Mode %s." % args.mode)
 

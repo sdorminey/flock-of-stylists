@@ -1,4 +1,5 @@
 import json
+import time
 import math
 import sys
 import subprocess
@@ -86,6 +87,7 @@ for message in consumer:
     for line in process.stdout.readlines():
         common.log("Training program output: %s" % line)
     common.log("Return code: %d" % process.returncode)
+    time.sleep(1)
 
     # Upload the completed checkpoint.
     common.upload("checkpoint", checkpoint_name)

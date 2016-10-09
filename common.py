@@ -32,6 +32,10 @@ class Common:
     def upload(self, category, filename):
         path = self.getpath(category, filename)
 
+        while not os.path.isfile(path):
+            print("Waiting for file %s" % path)
+            time.sleep(1)
+
         with open(path, "rb") as f:
             requests.post(
                     "http://%s/%s/%s" % (self.fs_addr, category, filename),
