@@ -16,7 +16,7 @@ parser.add_argument("--iters", type=int, default=250, help="Iterations per cycle
 parser.add_argument("--cycles", type=int, default=200, help="Number of cycles to train for.")
 parser.add_argument("--learning_rate", type=float, default=4e-2, help="Initial learning rate.")
 parser.add_argument("--learning_decay", type=float, default=0.8, help="Discount factor for learning rate by period.")
-parser.add_argument("--learning_period", type=int, default=10, help="Number of cycles between learning rate discounts.")
+parser.add_argument("--learning_period", type=int, default=25, help="Number of cycles between learning rate discounts.")
 
 args = parser.parse_args()
 

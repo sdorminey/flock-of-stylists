@@ -80,12 +80,12 @@ for message in consumer:
         common.download("checkpoint", starting_checkpoint)
     
     # Run the training program.
-    run_command = "/usr/bin/screen /usr/bin/sh %s %s" % (TRAIN_PATH, params)
+    run_command = "%s %s" % (TRAIN_PATH, params)
     common.log("Executing command %s" % run_command)
     process = subprocess.Popen(run_command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True, cwd=TRAIN_ROOT)
-    process.wait()
-    for line in process.stdout.readlines():
-        common.log("Training program output: %s" % line)
+    statement = process.communicate()[0]
+    common.log(statement)
+
     common.log("Return code: %d" % process.returncode)
     time.sleep(1)
 
